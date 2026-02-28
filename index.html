@@ -7,15 +7,15 @@
     
     <!-- PWA / Home Screen Meta Tags -->
     <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="FamPay">
     
-    <!-- Link to the physical Manifest file for Standalone Mode -->
+    <!-- Link to the physical Manifest file -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Favicon & Icons - Using 512px for better splash screen scaling -->
+    <!-- Favicon & Icons -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
 
@@ -36,13 +36,13 @@
             padding: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: white;
-            overflow-x: hidden;
+            overflow: hidden; /* Prevent body scroll to feel more like an app */
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         /* Layout Fixes */
-        #root { min-height: 100vh; display: flex; flex-direction: column; }
+        #root { height: 100vh; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: fixed; }
         
         /* Popup animation */
         @keyframes slideUp {
@@ -62,17 +62,20 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * A physical sw.js file is registered here.
+         * Simple and robust registration.
          */
         if ('serviceWorker' in navigator) {
-            // Check to ensure we are on the actual GitHub site and not a restricted preview
-            if (location.protocol.startsWith('http') && !location.host.includes('usercontent.goog')) {
-                window.addEventListener('load', () => {
+            window.addEventListener('load', () => {
+                // Check if we are on GitHub Pages or local
+                const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                const isSandbox = location.host.includes('usercontent.goog');
+                
+                if (!isSandbox) {
                     navigator.serviceWorker.register('sw.js')
-                        .then(reg => console.log('Service Worker registered'))
-                        .catch(err => console.error('Service Worker registration failed', err));
-                });
-            }
+                        .then(reg => console.log('SW Registered:', reg.scope))
+                        .catch(err => console.log('SW Registration failed:', err));
+                }
+            });
         }
     </script>
 
@@ -116,7 +119,7 @@
           );
 
           return (
-            <div className="flex flex-col h-screen bg-black text-white overflow-hidden select-none relative">
+            <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
               
               {/* Header */}
               <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top">
