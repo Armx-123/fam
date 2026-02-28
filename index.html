@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FamPay</title>
     
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="FamPay">
     
+    <!-- Links to physical files -->
     <link rel="manifest" href="manifest.json">
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
 
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -23,9 +26,21 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background-color: black; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: white; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+        body { 
+            background-color: black; 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            color: white; 
+            overflow: hidden; 
+            position: fixed; 
+            width: 100%; 
+            height: 100%; 
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         #root { height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+        .animate-slide-down { animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .safe-top { padding-top: env(safe-area-inset-top); }
@@ -43,24 +58,34 @@
           const [balance, setBalance] = useState("786.37");
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const [deferredPrompt, setDeferredPrompt] = useState(null);
+          const [isStandalone, setIsStandalone] = useState(false);
           const inputRef = useRef(null);
 
+          // Asset URLs
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
           const PROFILE_PIC = "https://cdn.discordapp.com/avatars/831419437617643591/f6aa179896d7f2116b58fe6c54c2293a.webp?size=240";
 
           useEffect(() => {
+            // Check if already in standalone mode
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+              setIsStandalone(true);
+            }
+
             // Register Service Worker
             if ('serviceWorker' in navigator && location.protocol === 'https:') {
-                navigator.serviceWorker.register('./sw.js');
+                navigator.serviceWorker.register('./sw.js').then(() => console.log("SW Active"));
             }
 
             // Catch the Install Prompt
-            window.addEventListener('beforeinstallprompt', (e) => {
+            const handleBeforeInstallPrompt = (e) => {
               e.preventDefault();
               setDeferredPrompt(e);
-            });
+            };
+
+            window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
           }, []);
 
           useEffect(() => {
@@ -72,7 +97,9 @@
             if (!deferredPrompt) return;
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') setDeferredPrompt(null);
+            if (outcome === 'accepted') {
+              setDeferredPrompt(null);
+            }
           };
 
           const NavItem = ({ iconName, label, active = false }) => (
@@ -80,18 +107,21 @@
               <div className={`h-10 flex items-center justify-center ${active ? 'scale-110' : 'scale-100'}`}>
                  <i data-lucide={iconName} className="w-[22px] h-[22px]"></i>
               </div>
-              <span className={`text-[11px] ${active ? 'font-black' : 'font-bold'}`}>{label}</span>
+              <span className={`text-[10px] ${active ? 'font-black' : 'font-bold'}`}>{label}</span>
             </div>
           );
 
           return (
             <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
               
-              {/* Manual Install Banner (Only shows when Brave is ready) */}
-              {deferredPrompt && (
-                <div className="bg-blue-600 px-4 py-2 flex items-center justify-between animate-pulse">
-                  <span className="text-xs font-bold">Install FamPay for the full experience</span>
-                  <button onClick={handleInstall} className="bg-white text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Install</button>
+              {/* Installation Banner (Visible in Brave when ready to install) */}
+              {deferredPrompt && !isStandalone && (
+                <div className="bg-blue-600 px-5 py-3 flex items-center justify-between animate-slide-down sticky top-0 z-[60] shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <img src={LOGO_ICON} className="w-8 h-8 rounded-lg shadow-md" alt="icon" />
+                    <span className="text-xs font-extrabold uppercase tracking-tight">Install FamPay App</span>
+                  </div>
+                  <button onClick={handleInstall} className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-sm active:scale-95 transition-transform">Install</button>
                 </div>
               )}
 
@@ -109,7 +139,7 @@
                 </div>
               </div>
 
-              {/* Content */}
+              {/* Main Content Area */}
               <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
                 <div className="px-4 mt-2">
                   <div className="relative aspect-square w-full bg-[#161616] rounded-[48px] overflow-hidden border border-white/5 shadow-2xl">
@@ -120,16 +150,17 @@
                   </div>
                 </div>
 
+                {/* Primary Buttons Grid */}
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                    <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative active:scale-95 transition-transform">
                       <i data-lucide="scan-line" className="text-white opacity-90 w-7 h-7"></i>
                     </div>
                     <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Your QR</div>
                   </div>
                   <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                     <i data-lucide="eye" className="text-white opacity-80 w-5 h-5"></i>
-                    <span className="text-[14px] font-bold tracking-tight">Check Balance</span>
+                    <span className="text-[14px] font-bold tracking-tight uppercase">Check Balance</span>
                   </button>
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
@@ -139,6 +170,7 @@
                   </div>
                 </div>
 
+                {/* Recommended Section */}
                 <div className="mt-12">
                   <div className="px-6 mb-6"><h2 className="text-gray-400 text-[15px] font-bold">Recommended</h2></div>
                   <div className="flex gap-5 px-6 overflow-x-auto no-scrollbar pb-10">
@@ -169,7 +201,7 @@
                 </div>
               </div>
 
-              {/* Nav */}
+              {/* Bottom Nav */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40 safe-bottom">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
@@ -178,32 +210,48 @@
                 <NavItem iconName="layout-grid" label="Keeper" />
               </div>
 
-              {/* Popup */}
+              {/* Balance Popup */}
               {isPopupOpen && (
                 <div className="fixed inset-0 z-50 flex flex-col justify-end">
                   <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
                   <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-8 pb-12 shadow-2xl animate-slide-up safe-bottom">
                     <div className="flex items-center mb-10">
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
-                      <h2 className="text-2xl font-black">Check Balance</h2>
+                      <h2 className="text-2xl font-black tracking-tighter">Check Balance</h2>
                     </div>
+                    
                     <div className="flex items-center justify-between mb-12">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl overflow-hidden p-2">
                            <img src="https://www.gstatic.com/images/branding/product/2x/wallet_48dp.png" className="w-full h-full object-contain" alt="Logo" />
                         </div>
-                        <span className="text-xl font-bold text-gray-200">Wallet balance</span>
+                        <span className="text-xl font-bold text-gray-200 tracking-tight">Wallet balance</span>
                       </div>
                       <div className="flex items-center gap-1 text-2xl font-black">
                         <span className="text-gray-500">₹</span>
                         {isEditingBalance ? (
-                          <input ref={inputRef} type="text" inputMode="decimal" value={balance} onChange={(e) => setBalance(e.target.value)} onBlur={() => setIsEditingBalance(false)} onKeyDown={(e) => e.key === 'Enter' && setIsEditingBalance(false)} className="bg-transparent border-b-2 border-blue-600 outline-none text-white w-28 text-right px-1" />
+                          <input 
+                            ref={inputRef} 
+                            type="text" 
+                            inputMode="decimal"
+                            value={balance} 
+                            onChange={(e) => setBalance(e.target.value)} 
+                            onBlur={() => setIsEditingBalance(false)} 
+                            onKeyDown={(e) => e.key === 'Enter' && setIsEditingBalance(false)}
+                            className="bg-transparent border-b-2 border-blue-600 outline-none text-white w-28 text-right px-1" 
+                          />
                         ) : (
-                          <div onClick={() => setIsEditingBalance(true)} className="text-white min-w-[80px] text-right">{balance}</div>
+                          <div 
+                            onClick={() => setIsEditingBalance(true)} 
+                            className="text-white min-w-[80px] text-right"
+                          >
+                            {balance}
+                          </div>
                         )}
                       </div>
                     </div>
-                    <div className="w-full rounded-[32px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900 active:scale-[0.98] transition-transform">
+                    
+                    <div className="w-full rounded-[30px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900 active:scale-[0.98] transition-transform">
                       <img src={BANK_PROMO} className="w-full h-auto object-cover" alt="Promo" />
                     </div>
                   </div>
