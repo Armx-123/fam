@@ -10,13 +10,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FamPay">
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
 
-    <!-- Embedded Web Manifest for "Install" support without a separate file -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"FamPay","short_name":"FamPay","start_url":".","display":"standalone","background_color":"#000000","theme_color":"#000000","icons":[{"src":"https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128","sizes":"128x128","type":"image/png"}]}'>
+    <!-- Embedded Web Manifest -->
+    <!-- Note: start_url and scope are set to /fam/ to match your GitHub Pages path -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"FamPay","short_name":"FamPay","start_url":"/fam/","scope":"/fam/","display":"standalone","background_color":"#000000","theme_color":"#000000","icons":[{"src":"https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128","sizes":"128x128","type":"image/png"}]}'>
 
     <!-- Tailwind CSS & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +35,7 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         /* Ensure the app takes full viewport height and doesn't bounce on mobile */
-        html, body, #root { height: 100%; overflow: hidden; }
+        html, body, #root { height: 100%; overflow: hidden; position: fixed; width: 100%; }
         
         /* Smooth transitions for popup */
         .popup-enter { transform: translateY(100%); transition: transform 0.3s ease-out; }
@@ -42,6 +44,23 @@
 </head>
 <body>
     <div id="root"></div>
+
+    <script>
+        // Inline Service Worker to trigger "Standalone" PWA mode on Android
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (event) => self.skipWaiting());
+                self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+                self.addEventListener('fetch', (event) => {
+                    // Just a pass-through fetch handler to satisfy PWA requirements
+                    event.respondWith(fetch(event.request));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration failed:', err));
+        }
+    </script>
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
@@ -52,6 +71,7 @@
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const inputRef = useRef(null);
 
+          // Updated Assets
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/refs/heads/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/refs/heads/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
