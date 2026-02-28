@@ -10,12 +10,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="FamPay">
     
-    <!-- Link to the physical Manifest file -->
+    <!-- Link to physical Manifest -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Icons -->
+    <!-- High-Res Icons -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
 
@@ -34,36 +33,17 @@
             background-color: black; 
             margin: 0; 
             padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: white;
             overflow: hidden;
+            position: fixed;
             width: 100%;
             height: 100%;
-            position: fixed;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        #root { 
-            height: 100%; 
-            width: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-        }
-        
-        @keyframes slideInDown {
-            from { transform: translateY(-100%); }
-            to { transform: translateY(0); }
-        }
-        .animate-slide-down { animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
+        #root { height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        
         .safe-top { padding-top: env(safe-area-inset-top); }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     </style>
@@ -74,16 +54,13 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Improved detection logic.
+         * Using the absolute minimum path for GitHub Pages subfolder compatibility.
          */
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
             window.addEventListener('load', () => {
-                const isSandbox = location.host.includes('usercontent.goog') || location.protocol === 'blob:';
-                if (!isSandbox && location.protocol === 'https:') {
-                    navigator.serviceWorker.register('sw.js')
-                        .then(reg => console.log('Service Worker Active'))
-                        .catch(err => console.log('Registration Failed', err));
-                }
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('App ready for install'))
+                    .catch(err => console.error('PWA blocked', err));
             });
         }
     </script>
@@ -96,26 +73,18 @@
           const [balance, setBalance] = useState("786.37");
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const [deferredPrompt, setDeferredPrompt] = useState(null);
-          const [showBanner, setShowBanner] = useState(false);
           const inputRef = useRef(null);
 
-          // Asset URLs
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
           const PROFILE_PIC = "https://cdn.discordapp.com/avatars/831419437617643591/f6aa179896d7f2116b58fe6c54c2293a.webp?size=240";
 
           useEffect(() => {
-            const handlePrompt = (e) => {
+            window.addEventListener('beforeinstallprompt', (e) => {
               e.preventDefault();
               setDeferredPrompt(e);
-              setShowBanner(true);
-            };
-
-            window.addEventListener('beforeinstallprompt', handlePrompt);
-            window.addEventListener('appinstalled', () => setShowBanner(false));
-
-            return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
+            });
           }, []);
 
           useEffect(() => {
@@ -123,14 +92,11 @@
             lucide.createIcons();
           });
 
-          const handleInstallAction = async () => {
+          const triggerInstall = async () => {
             if (!deferredPrompt) return;
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-              setDeferredPrompt(null);
-              setShowBanner(false);
-            }
+            if (outcome === 'accepted') setDeferredPrompt(null);
           };
 
           const NavItem = ({ iconName, label, active = false }) => (
@@ -145,26 +111,18 @@
           return (
             <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
               
-              {/* Manual Install Banner Trigger */}
-              {showBanner && (
-                <div className="bg-blue-600 px-5 py-3 flex items-center justify-between animate-slide-down sticky top-0 z-[100] shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <img src={LOGO_ICON} className="w-8 h-8 rounded-lg" alt="app" />
-                    <span className="text-[11px] font-black uppercase tracking-tight">Install FamPay App</span>
-                  </div>
-                  <button 
-                    onClick={handleInstallAction}
-                    className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-sm active:scale-90"
-                  >
-                    Install
-                  </button>
-                </div>
-              )}
-
               {/* Header */}
               <div className="px-4 py-4 flex items-center gap-3 bg-black safe-top">
-                <div className="w-12 h-12 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer">
+                <div 
+                    onClick={triggerInstall}
+                    className="w-12 h-12 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer relative"
+                >
                   <img src={PROFILE_PIC} className="w-full h-full object-cover" alt="Profile" />
+                  {deferredPrompt && (
+                    <div className="absolute inset-0 bg-blue-600/40 flex items-center justify-center">
+                        <i data-lucide="download" className="text-white w-5 h-5"></i>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 bg-[#222222] rounded-full h-12 flex items-center px-5 gap-3 border border-white/5">
                   <i data-lucide="search" className="text-gray-400 w-5 h-5"></i>
@@ -175,7 +133,7 @@
                 </div>
               </div>
 
-              {/* Scrollable Area */}
+              {/* Content Area */}
               <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
                 <div className="px-4 mt-2">
                   <div className="relative aspect-square w-full bg-[#161616] rounded-[48px] overflow-hidden border border-white/5 shadow-2xl">
@@ -188,7 +146,7 @@
 
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
+                    <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative active:scale-95 transition-transform">
                       <i data-lucide="scan-line" className="text-white opacity-90 w-7 h-7"></i>
                     </div>
                     <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Your QR</div>
@@ -216,7 +174,7 @@
                     ].map((person, i) => (
                       <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 w-20">
                         <div className="relative group">
-                          <div className="w-18 h-18 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
+                          <div className="w-20 h-20 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
                             <i data-lucide="user" className="text-white/5 w-10 h-10"></i>
                             <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full ${person.color} flex items-center justify-center border-4 border-[#000000]`}>
                               <span className="text-sm">{person.icon}</span>
@@ -253,10 +211,9 @@
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black tracking-tighter">Check Balance</h2>
                     </div>
-                    
                     <div className="flex items-center justify-between mb-12">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl overflow-hidden p-2">
+                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl p-2 overflow-hidden">
                            <img src="https://www.gstatic.com/images/branding/product/2x/wallet_48dp.png" className="w-full h-full object-contain" alt="Logo" />
                         </div>
                         <span className="text-xl font-bold text-gray-200 tracking-tight">Wallet balance</span>
@@ -270,8 +227,7 @@
                         )}
                       </div>
                     </div>
-                    
-                    <div className="w-full rounded-[30px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900 active:scale-[0.98] transition-transform">
+                    <div className="w-full rounded-[32px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900 active:scale-[0.98] transition-transform">
                       <img src={BANK_PROMO} className="w-full h-auto object-cover" alt="Promo" />
                     </div>
                   </div>
