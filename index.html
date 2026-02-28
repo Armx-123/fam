@@ -12,12 +12,12 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="FamPay">
     
+    <!-- Link to the physical Manifest file you just created -->
+    <link rel="manifest" href="manifest.json">
+    
     <!-- Favicon & Icons -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
-
-    <!-- Enhanced Embedded Web Manifest -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"FamPay","short_name":"FamPay","start_url":"/fam/","scope":"/fam/","display":"standalone","orientation":"portrait","background_color":"#000000","theme_color":"#000000","icons":[{"src":"https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128","sizes":"128x128","type":"image/png","purpose":"any maskable"},{"src":"https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=256","sizes":"256x256","type":"image/png"}]}'>
 
     <!-- Tailwind CSS & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -51,7 +51,7 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Using a physical sw.js file for maximum compatibility with Chrome's standalone requirements.
+         * Using the physical sw.js file for maximum compatibility.
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -138,7 +138,7 @@
                     </div>
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Your QR</div>
                   </div>
-                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform">
+                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
                     <i data-lucide="eye" className="text-white opacity-80 w-5 h-5"></i>
                     <span className="text-[14px] font-bold tracking-tight">Check Balance</span>
                   </button>
@@ -198,7 +198,7 @@
                 </div>
               </div>
 
-              {/* Nav */}
+              {/* Fixed Bottom Navigation */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
@@ -207,11 +207,11 @@
                 <NavItem iconName="layout-grid" label="Keeper" />
               </div>
 
-              {/* Popup */}
+              {/* Check Balance Popup */}
               {isPopupOpen && (
                 <div className="fixed inset-0 z-50 flex flex-col justify-end">
-                  <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
-                  <div className="relative bg-[#0d0d0d] rounded-t-[40px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up">
+                  <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
+                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up">
                     <div className="flex items-center mb-9">
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black tracking-tight">Check Balance</h2>
