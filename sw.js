@@ -1,6 +1,15 @@
-self.addEventListener('install', (e) => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-self.addEventListener('fetch', (e) => {
-    // A fetch listener is mandatory for browsers to enable the Install prompt
-    e.respondWith(fetch(e.request));
+// A functional service worker is required for Brave to allow PWA installation
+const CACHE_NAME = 'fampay-v2';
+
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+    // Pass-through fetch handler satisfying Brave's PWA requirements
+    event.respondWith(fetch(event.request));
 });
