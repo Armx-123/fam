@@ -11,9 +11,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="FamPay">
+    <meta name="application-name" content="FamPay">
     
-    <!-- Link to the physical Manifest file (relative path is safer) -->
-    <link rel="manifest" href="./manifest.json">
+    <!-- Link to the physical Manifest file with credentials check for Brave -->
+    <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
     
     <!-- Favicon & Icons - Using 512px for better scaling -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
@@ -30,7 +31,13 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background-color: black; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { 
+            background-color: black; 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overscroll-behavior-y: contain; /* Prevents pull-to-refresh in some browsers */
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -51,13 +58,17 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Improved registration with scope check.
+         * We ensure the service worker is registered from the root of the project.
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' })
-                    .then(reg => console.log('Service Worker registered', reg))
-                    .catch(err => console.log('Service Worker registration failed', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => {
+                        console.log('Service Worker registered with scope:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.error('Service Worker registration failed:', err);
+                    });
             });
         }
     </script>
