@@ -11,10 +11,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="FamPay">
-    <meta name="application-name" content="FamPay">
     
     <!-- Link to the physical Manifest file -->
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Favicon & Icons -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
@@ -36,13 +35,14 @@
             margin: 0; 
             padding: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overscroll-behavior-y: contain;
+            color: white;
+            overflow-x: hidden;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* App Layout */
-        #root { height: 100vh; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: fixed; }
+        /* Layout Fixes */
+        #root { min-height: 100vh; display: flex; flex-direction: column; }
         
         /* Popup animation */
         @keyframes slideUp {
@@ -50,6 +50,10 @@
             to { transform: translateY(0); }
         }
         .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Handle safe areas for mobile notches */
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body>
@@ -58,20 +62,15 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Simple registration for sw.js
+         * A physical sw.js file is required for Brave/Chrome to show "Install App"
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW Registered', reg))
-                    .catch(err => console.error('SW Failed', err));
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('Service Worker registration failed', err));
             });
         }
-
-        // Catch the install prompt for debugging or custom triggers
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('App is ready to be installed');
-        });
     </script>
 
     <script type="text/babel">
@@ -79,11 +78,11 @@
 
         const App = () => {
           const [isPopupOpen, setIsPopupOpen] = useState(false);
-          const [balance, setBalance] = useState("686.37");
+          const [balance, setBalance] = useState("786.37");
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const inputRef = useRef(null);
 
-          // Correct Raw GitHub Links
+          // Image Assets
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
@@ -114,10 +113,10 @@
           );
 
           return (
-            <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
+            <div className="flex flex-col h-screen bg-black text-white overflow-hidden select-none relative">
               
               {/* Header */}
-              <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top">
+              <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top border-b border-white/5">
                 <div className="w-11 h-11 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer">
                   <img src={PROFILE_PIC} className="w-full h-full object-cover" alt="Profile" />
                 </div>
@@ -141,7 +140,7 @@
                   </div>
                 </div>
 
-                {/* Primary Actions */}
+                {/* Main Actions */}
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
@@ -150,7 +149,7 @@
                     </div>
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Your QR</div>
                   </div>
-                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform">
+                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                     <i data-lucide="eye" className="text-white opacity-80 w-5 h-5"></i>
                     <span className="text-[14px] font-bold tracking-tight">Check Balance</span>
                   </button>
@@ -163,7 +162,7 @@
                   </div>
                 </div>
 
-                {/* Secondary Actions */}
+                {/* Secondary Actions Row */}
                 <div className="flex items-center justify-between px-6 mt-6">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center relative overflow-hidden active:scale-95 transition-transform">
@@ -184,7 +183,7 @@
                   </div>
                 </div>
 
-                {/* Recommended Section */}
+                {/* Recommended Contacts */}
                 <div className="mt-10">
                   <div className="px-6 mb-5"><h2 className="text-gray-500 text-[14px] font-bold tracking-tight">Recommended</h2></div>
                   <div className="flex gap-4 px-6 overflow-x-auto no-scrollbar pb-10">
@@ -210,8 +209,8 @@
                 </div>
               </div>
 
-              {/* Nav */}
-              <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40">
+              {/* Fixed Bottom Navigation */}
+              <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40 safe-bottom">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
                 <NavItem iconName="smartphone" label="Pay" active />
@@ -219,11 +218,11 @@
                 <NavItem iconName="layout-grid" label="Keeper" />
               </div>
 
-              {/* Popup */}
+              {/* Check Balance Popup */}
               {isPopupOpen && (
                 <div className="fixed inset-0 z-50 flex flex-col justify-end">
                   <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
-                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up">
+                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up safe-bottom">
                     <div className="flex items-center mb-9">
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black tracking-tight">Check Balance</h2>
