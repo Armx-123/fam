@@ -1,8 +1,6 @@
 {
-  "id": "/fam/",
   "name": "FamPay",
   "short_name": "FamPay",
-  "description": "FamPay - Secure Payments & Rewards",
   "start_url": "/fam/",
   "scope": "/fam/",
   "display": "standalone",
