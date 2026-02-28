@@ -74,16 +74,15 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Improved detection logic to handle Brave's security contexts.
+         * Improved detection logic.
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const isSandbox = location.host.includes('usercontent.goog') || location.protocol === 'blob:';
-                // Only register if we are on the actual GitHub site or equivalent
                 if (!isSandbox && location.protocol === 'https:') {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(reg => console.log('PWA Registered Successfully'))
-                        .catch(err => console.error('PWA Registration Failed', err));
+                    navigator.serviceWorker.register('sw.js')
+                        .then(reg => console.log('Service Worker Active'))
+                        .catch(err => console.log('Registration Failed', err));
                 }
             });
         }
@@ -97,7 +96,7 @@
           const [balance, setBalance] = useState("786.37");
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const [deferredPrompt, setDeferredPrompt] = useState(null);
-          const [installStatus, setInstallStatus] = useState('checking'); // checking, ready, installed
+          const [showBanner, setShowBanner] = useState(false);
           const inputRef = useRef(null);
 
           // Asset URLs
@@ -107,25 +106,14 @@
           const PROFILE_PIC = "https://cdn.discordapp.com/avatars/831419437617643591/f6aa179896d7f2116b58fe6c54c2293a.webp?size=240";
 
           useEffect(() => {
-            // 1. Detect if already installed
-            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-              setInstallStatus('installed');
-            }
-
-            // 2. Listener for installation prompt
             const handlePrompt = (e) => {
               e.preventDefault();
               setDeferredPrompt(e);
-              setInstallStatus('ready');
+              setShowBanner(true);
             };
 
             window.addEventListener('beforeinstallprompt', handlePrompt);
-            
-            // 3. Listener for successful install
-            window.addEventListener('appinstalled', () => {
-              setInstallStatus('installed');
-              setDeferredPrompt(null);
-            });
+            window.addEventListener('appinstalled', () => setShowBanner(false));
 
             return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
           }, []);
@@ -141,6 +129,7 @@
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
               setDeferredPrompt(null);
+              setShowBanner(false);
             }
           };
 
@@ -156,23 +145,18 @@
           return (
             <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
               
-              {/* --- New Reinforced Install Banner --- */}
-              {installStatus === 'ready' && deferredPrompt && (
-                <div className="bg-gradient-to-r from-blue-700 to-indigo-800 px-5 py-4 flex items-center justify-between animate-slide-down sticky top-0 z-[100] shadow-2xl border-b border-white/10">
+              {/* Manual Install Banner Trigger */}
+              {showBanner && (
+                <div className="bg-blue-600 px-5 py-3 flex items-center justify-between animate-slide-down sticky top-0 z-[100] shadow-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
-                       <img src={LOGO_ICON} className="w-8 h-8 object-contain" alt="app" />
-                    </div>
-                    <div>
-                      <h4 className="text-white text-[12px] font-black uppercase tracking-widest leading-none mb-1">Get FamPay App</h4>
-                      <p className="text-white/70 text-[10px] font-bold">Fast access from home screen</p>
-                    </div>
+                    <img src={LOGO_ICON} className="w-8 h-8 rounded-lg" alt="app" />
+                    <span className="text-[11px] font-black uppercase tracking-tight">Install FamPay App</span>
                   </div>
                   <button 
                     onClick={handleInstallAction}
-                    className="bg-white text-blue-700 px-5 py-2 rounded-full text-[11px] font-black uppercase shadow-lg active:scale-90 transition-transform"
+                    className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-sm active:scale-90"
                   >
-                    Install Now
+                    Install
                   </button>
                 </div>
               )}
@@ -191,7 +175,7 @@
                 </div>
               </div>
 
-              {/* Main Scrollable Area */}
+              {/* Scrollable Area */}
               <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
                 <div className="px-4 mt-2">
                   <div className="relative aspect-square w-full bg-[#161616] rounded-[48px] overflow-hidden border border-white/5 shadow-2xl">
@@ -204,7 +188,7 @@
 
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative active:scale-95 transition-transform">
+                    <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
                       <i data-lucide="scan-line" className="text-white opacity-90 w-7 h-7"></i>
                     </div>
                     <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Your QR</div>
@@ -232,7 +216,7 @@
                     ].map((person, i) => (
                       <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 w-20">
                         <div className="relative group">
-                          <div className="w-20 h-20 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
+                          <div className="w-18 h-18 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
                             <i data-lucide="user" className="text-white/5 w-10 h-10"></i>
                             <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full ${person.color} flex items-center justify-center border-4 border-[#000000]`}>
                               <span className="text-sm">{person.icon}</span>
@@ -251,7 +235,7 @@
                 </div>
               </div>
 
-              {/* Nav */}
+              {/* Bottom Nav */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40 safe-bottom">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
@@ -269,6 +253,7 @@
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black tracking-tighter">Check Balance</h2>
                     </div>
+                    
                     <div className="flex items-center justify-between mb-12">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl overflow-hidden p-2">
@@ -285,6 +270,7 @@
                         )}
                       </div>
                     </div>
+                    
                     <div className="w-full rounded-[30px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900 active:scale-[0.98] transition-transform">
                       <img src={BANK_PROMO} className="w-full h-auto object-cover" alt="Promo" />
                     </div>
