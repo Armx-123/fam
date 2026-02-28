@@ -1,15 +1,12 @@
-// A functional service worker is required for Brave to allow PWA installation
-const CACHE_NAME = 'fampay-v2';
-
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (e) => {
     self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
+self.addEventListener('activate', (e) => {
+    e.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
-    // Pass-through fetch handler satisfying Brave's PWA requirements
+    // This allows the app to be installable by satisfying the 'offline-ready' check
     event.respondWith(fetch(event.request));
 });
