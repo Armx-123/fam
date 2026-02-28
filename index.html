@@ -7,9 +7,9 @@
     
     <!-- PWA / Home Screen Meta Tags -->
     <meta name="theme-color" content="#000000">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="FamPay">
     
     <!-- Link to the physical Manifest file -->
@@ -36,22 +36,27 @@
             padding: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: white;
-            overflow: hidden; /* Prevent body scroll to feel more like an app */
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Layout Fixes */
-        #root { height: 100vh; width: 100%; display: flex; flex-direction: column; overflow: hidden; position: fixed; }
+        #root { 
+            height: 100%; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
         
-        /* Popup animation */
         @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
         }
         .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        /* Handle safe areas for mobile notches */
         .safe-top { padding-top: env(safe-area-inset-top); }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     </style>
@@ -62,18 +67,19 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Simple and robust registration.
+         * Modified to only run on standard web protocols (https:)
+         * This fixes the "URL protocol of the script (':') is not supported" error in previews.
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Check if we are on GitHub Pages or local
-                const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-                const isSandbox = location.host.includes('usercontent.goog');
-                
-                if (!isSandbox) {
-                    navigator.serviceWorker.register('sw.js')
-                        .then(reg => console.log('SW Registered:', reg.scope))
-                        .catch(err => console.log('SW Registration failed:', err));
+                // Guardian: Skip registration in restricted preview environments or local file blobs
+                const isSandbox = location.host.includes('usercontent.goog') || location.protocol === 'blob:';
+                const isProduction = location.protocol === 'https:';
+
+                if (isProduction && !isSandbox) {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('PWA Service Worker Active'))
+                        .catch(err => console.error('PWA Registration Error', err));
                 }
             });
         }
@@ -88,7 +94,7 @@
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const inputRef = useRef(null);
 
-          // Image Assets from GitHub/Discord
+          // Corrected Asset Links
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
@@ -123,7 +129,7 @@
               
               {/* Header */}
               <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top">
-                <div className="w-11 h-11 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer">
+                <div className="w-11 h-11 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform">
                   <img src={PROFILE_PIC} className="w-full h-full object-cover" alt="Profile" />
                 </div>
                 <div className="flex-1 bg-[#1a1a1a] rounded-full h-11 flex items-center px-4 gap-3 border border-white/5">
@@ -146,12 +152,11 @@
                   </div>
                 </div>
 
-                {/* Primary Actions Grid */}
+                {/* Main Actions Row */}
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
                       <i data-lucide="scan-line" className="text-white opacity-90 w-6 h-6"></i>
-                      <div className="absolute bottom-0 w-full h-1/4 bg-white/5"></div>
                     </div>
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Your QR</div>
                   </div>
@@ -160,32 +165,29 @@
                     <span className="text-[14px] font-bold tracking-tight">Check Balance</span>
                   </button>
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
+                    <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
                       <div className="border-2 border-white/40 p-1 rounded"><i data-lucide="plus" className="w-4 h-4"></i></div>
-                      <div className="absolute bottom-0 w-full h-1/4 bg-white/5"></div>
                     </div>
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Add Money</div>
                   </div>
                 </div>
 
-                {/* Secondary Actions Row */}
+                {/* Secondary Actions */}
                 <div className="flex items-center justify-between px-6 mt-6">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center relative overflow-hidden active:scale-95 transition-transform">
-                      <div className="w-full h-full bg-gradient-to-br from-transparent to-white/5"></div>
-                      <div className="absolute bottom-0 w-full h-1/4 bg-white/5"></div>
+                    <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center relative active:scale-95 transition-transform">
+                      <div className="w-full h-full bg-gradient-to-br from-transparent to-white/5 rounded-full border border-white/5"></div>
                     </div>
-                    <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">DigiGold</div>
+                    <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">DigiGold</div>
                   </div>
-                  <div className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center active:scale-95 transition-transform">
+                  <div className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center">
                     <span className="text-[14px] font-bold text-gray-200">Vouchers</span>
                   </div>
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center relative overflow-hidden active:scale-95 transition-transform">
-                      <div className="w-full h-full bg-gradient-to-bl from-transparent to-white/5"></div>
-                      <div className="absolute bottom-0 w-full h-1/4 bg-white/5"></div>
+                    <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center relative active:scale-95 transition-transform">
+                      <div className="w-full h-full bg-gradient-to-bl from-transparent to-white/5 rounded-full border border-white/5"></div>
                     </div>
-                    <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Keeper</div>
+                    <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Keeper</div>
                   </div>
                 </div>
 
@@ -215,7 +217,7 @@
                 </div>
               </div>
 
-              {/* Fixed Bottom Navigation */}
+              {/* Bottom Navigation */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40 safe-bottom">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
@@ -228,7 +230,7 @@
               {isPopupOpen && (
                 <div className="fixed inset-0 z-50 flex flex-col justify-end">
                   <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
-                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up">
+                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up safe-bottom">
                     <div className="flex items-center mb-9">
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black tracking-tight">Check Balance</h2>
@@ -236,7 +238,7 @@
                     
                     <div className="flex items-center justify-between mb-10 px-1">
                       <div className="flex items-center gap-4">
-                        <div className="w-13 h-13 bg-[#1a1a1a] rounded-2xl flex items-center justify-center shadow-xl overflow-hidden border border-white/5 p-2">
+                        <div className="w-13 h-13 bg-[#1a1a1a] rounded-2xl flex items-center justify-center shadow-xl overflow-hidden border border-white/5">
                            <img src={LOGO_ICON} className="w-full h-full object-cover scale-110" alt="Logo" />
                         </div>
                         <span className="text-lg font-bold text-gray-200 tracking-tight">Wallet balance</span>
@@ -265,7 +267,7 @@
                       </div>
                     </div>
                     
-                    <div className="w-full rounded-[30px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900 active:scale-[0.98] transition-transform">
+                    <div className="w-full rounded-[30px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900">
                       <img src={BANK_PROMO} className="w-full h-auto object-cover" alt="Promo" />
                     </div>
                   </div>
