@@ -15,7 +15,7 @@
     <!-- Link to the physical Manifest file -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Favicon & Icons - Using 512px for high-res splash screen -->
+    <!-- Favicon & Icons -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
 
@@ -35,16 +35,12 @@
             margin: 0; 
             padding: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            height: 100%;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Force app feel */
-        #root { height: 100%; width: 100%; overflow: hidden; }
+        /* App Layout */
+        #root { height: 100vh; width: 100%; display: flex; flex-direction: column; }
         
         /* Popup animation */
         @keyframes slideUp {
@@ -60,13 +56,13 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * Improved registration with logs to help debugging
+         * Simple registration for sw.js
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js', { scope: '/fam/' })
-                    .then(reg => console.log('PWA Service Worker registered'))
-                    .catch(err => console.log('PWA Service Worker registration failed', err));
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Failed', err));
             });
         }
     </script>
@@ -80,7 +76,7 @@
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const inputRef = useRef(null);
 
-          // Correct Assets
+          // Correct Raw GitHub Links
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
@@ -115,7 +111,7 @@
               
               {/* Header */}
               <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top">
-                <div className="w-11 h-11 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform">
+                <div className="w-11 h-11 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer">
                   <img src={PROFILE_PIC} className="w-full h-full object-cover" alt="Profile" />
                 </div>
                 <div className="flex-1 bg-[#1a1a1a] rounded-full h-11 flex items-center px-4 gap-3 border border-white/5">
@@ -138,6 +134,7 @@
                   </div>
                 </div>
 
+                {/* Primary Actions */}
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
@@ -146,7 +143,7 @@
                     </div>
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Your QR</div>
                   </div>
-                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform">
                     <i data-lucide="eye" className="text-white opacity-80 w-5 h-5"></i>
                     <span className="text-[14px] font-bold tracking-tight">Check Balance</span>
                   </button>
@@ -159,6 +156,7 @@
                   </div>
                 </div>
 
+                {/* Secondary Actions */}
                 <div className="flex items-center justify-between px-6 mt-6">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center relative overflow-hidden active:scale-95 transition-transform">
@@ -179,6 +177,7 @@
                   </div>
                 </div>
 
+                {/* Recommended Section */}
                 <div className="mt-10">
                   <div className="px-6 mb-5"><h2 className="text-gray-500 text-[14px] font-bold tracking-tight">Recommended</h2></div>
                   <div className="flex gap-4 px-6 overflow-x-auto no-scrollbar pb-10">
@@ -187,7 +186,7 @@
                         <div className="relative group">
                           <div className="w-18 h-18 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
                             <i data-lucide="user" className="text-white/5 w-10 h-10"></i>
-                            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full ${person.color} flex items-center justify-center border-4 border-[#0c0c0c]`}>
+                            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full ${person.color} flex items-center justify-center border-4 border-[#000000]`}>
                               <span className="text-[12px]">{person.icon}</span>
                             </div>
                           </div>
