@@ -50,6 +50,10 @@
           const [deferredPrompt, setDeferredPrompt] = useState(null);
           const [isInstalled, setIsInstalled] = useState(false);
           
+          // Debugging State
+          const [logs, setLogs] = useState([]);
+          const addLog = (msg) => setLogs(prev => [...prev.slice(-5), `${new Date().toLocaleTimeString().split(' ')[0]}: ${msg}`]);
+
           const inputRef = useRef(null);
 
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
@@ -58,26 +62,33 @@
           const PROFILE_PIC = "https://cdn.discordapp.com/avatars/831419437617643591/f6aa179896d7f2116b58fe6c54c2293a.webp?size=240";
 
           useEffect(() => {
-            // Detect Standalone Mode
+            // Standalone Check
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
               setIsInstalled(true);
+              addLog("Mode: Standalone ✅");
+            } else {
+              addLog("Mode: Browser 🌐");
             }
 
             // Register Service Worker
             if ('serviceWorker' in navigator && location.protocol === 'https:') {
-                navigator.serviceWorker.register('./sw.js').then(() => console.log("SW Active"));
+                navigator.serviceWorker.register('./sw.js')
+                    .then(() => addLog("SW: Registered ✅"))
+                    .catch(err => addLog("SW Error: " + err.message));
             }
 
             // Catch Install Prompt
             const handleBeforeInstall = (e) => {
               e.preventDefault();
               setDeferredPrompt(e);
+              addLog("Install: Ready 🚀");
             };
 
             window.addEventListener('beforeinstallprompt', handleBeforeInstall);
             window.addEventListener('appinstalled', () => {
               setIsInstalled(true);
               setDeferredPrompt(null);
+              addLog("Status: Installed 🎉");
             });
 
             return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
@@ -89,9 +100,13 @@
           });
 
           const handleInstall = async () => {
-            if (!deferredPrompt) return;
+            if (!deferredPrompt) {
+                addLog("Prompt not fired yet...");
+                return;
+            }
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
+            addLog("User choice: " + outcome);
             if (outcome === 'accepted') setDeferredPrompt(null);
           };
 
@@ -107,16 +122,16 @@
           return (
             <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
               
-              {/* Install Trigger (Bypasses Browser Menu) */}
+              {/* Manual Install Banner (Only shows when Brave/Chrome are truly ready) */}
               {deferredPrompt && !isInstalled && (
-                <div className="bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0 z-[100] animate-pulse">
+                <div className="bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0 z-[100] animate-pulse shadow-lg">
                   <div className="flex items-center gap-2">
                     <div className="bg-white p-1 rounded-lg">
                       <img src={LOGO_ICON} className="w-5 h-5 object-contain" alt="Logo" />
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-tight">Real App Available</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight">App Installation Ready</span>
                   </div>
-                  <button onClick={handleInstall} className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg">Install Now</button>
+                  <button onClick={handleInstall} className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg active:scale-95">Install Now</button>
                 </div>
               )}
 
@@ -192,6 +207,15 @@
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Debugger UI */}
+              <div className="fixed bottom-24 left-4 right-4 bg-zinc-900/90 border border-blue-500/30 rounded-xl p-3 font-mono text-[9px] text-blue-400 z-[100] backdrop-blur-md">
+                <div className="flex justify-between items-center mb-1 border-b border-white/10 pb-1">
+                    <span className="font-bold uppercase tracking-widest text-[8px]">PWA Hard-Status</span>
+                    <button onClick={() => setLogs([])} className="text-white/40">Clear</button>
+                </div>
+                {logs.map((log, i) => <div key={i} className="leading-tight mb-0.5">{log}</div>)}
               </div>
 
               {/* Nav */}
