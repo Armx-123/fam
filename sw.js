@@ -6,7 +6,7 @@ self.addEventListener('activate', (e) => {
     e.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-    // Brave requires a fetch handler to enable the "Install" option
-    event.respondWith(fetch(event.request));
+self.addEventListener('fetch', (e) => {
+    // Brave requires this to be present to enable the "Install" prompt
+    e.respondWith(fetch(e.request));
 });
