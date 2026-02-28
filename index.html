@@ -13,10 +13,10 @@
     <meta name="apple-mobile-web-app-title" content="FamPay">
     <meta name="application-name" content="FamPay">
     
-    <!-- Link to the physical Manifest file with credentials check for Brave -->
-    <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
+    <!-- Link to the physical Manifest file -->
+    <link rel="manifest" href="manifest.json">
     
-    <!-- Favicon & Icons - Using 512px for better scaling -->
+    <!-- Favicon & Icons -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
 
@@ -36,7 +36,6 @@
             margin: 0; 
             padding: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overscroll-behavior-y: contain; /* Prevents pull-to-refresh in some browsers */
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -58,17 +57,13 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * We ensure the service worker is registered from the root of the project.
+         * Simple registration for sw.js
          */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        console.log('Service Worker registered with scope:', reg.scope);
-                    })
-                    .catch(err => {
-                        console.error('Service Worker registration failed:', err);
-                    });
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Failed', err));
             });
         }
     </script>
@@ -149,7 +144,7 @@
                     </div>
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">Your QR</div>
                   </div>
-                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform">
                     <i data-lucide="eye" className="text-white opacity-80 w-5 h-5"></i>
                     <span className="text-[14px] font-bold tracking-tight">Check Balance</span>
                   </button>
