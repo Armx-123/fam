@@ -1,14 +1,28 @@
-const CACHE_NAME = 'fampay-v1';
+const CACHE_NAME = 'fampay-v5';
+const ASSETS = [
+  '/fam/',
+  '/fam/index.html',
+  '/fam/manifest.json'
+];
 
 self.addEventListener('install', (e) => {
-    self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
-    e.waitUntil(self.clients.claim());
+  e.waitUntil(
+    caches.keys().then((keys) => Promise.all(
+      keys.map((key) => key !== CACHE_NAME && caches.delete(key))
+    ))
+  );
+  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-    // Brave requires this fetch listener to be active for PWA status
-    event.respondWith(fetch(event.request));
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((res) => res || fetch(e.request))
+  );
 });
