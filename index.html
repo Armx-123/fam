@@ -4,11 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FamPay</title>
-    <!-- PWA Meta Tags for Home Screen -->
+    
+    <!-- PWA / Home Screen Meta Tags -->
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
+    <meta name="mobile-web-app-capable" content="yes">
     
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
+    <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128">
+
+    <!-- Embedded Web Manifest for "Install" support without a separate file -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"FamPay","short_name":"FamPay","start_url":".","display":"standalone","background_color":"#000000","theme_color":"#000000","icons":[{"src":"https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=256#\&sz=128","sizes":"128x128","type":"image/png"}]}'>
+
     <!-- Tailwind CSS & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,6 +31,13 @@
         body { background-color: black; margin: 0; padding: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Ensure the app takes full viewport height and doesn't bounce on mobile */
+        html, body, #root { height: 100%; overflow: hidden; }
+        
+        /* Smooth transitions for popup */
+        .popup-enter { transform: translateY(100%); transition: transform 0.3s ease-out; }
+        .popup-enter-active { transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -29,10 +45,6 @@
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
-        const { 
-          Search, Send, ScanLine, Eye, Plus, LayoutGrid, Trophy, 
-          Landmark, Smartphone, ChevronRight, User, History, ChevronLeft 
-        } = lucide;
 
         const App = () => {
           const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -52,12 +64,22 @@
             { name: "Mr Pravee...", color: "bg-purple-500", icon: "⭐", badge: "PP" },
           ];
 
+          // Auto-focus input when editing starts
           useEffect(() => {
             if (isEditingBalance && inputRef.current) inputRef.current.focus();
           }, [isEditingBalance]);
 
+          // Initialize Lucide icons
+          useEffect(() => {
+            lucide.createIcons();
+          }, []);
+
+          // Re-trigger icons after UI updates (like opening popup)
+          useEffect(() => {
+            lucide.createIcons();
+          });
+
           const NavItem = ({ iconName, label, active = false }) => {
-            const Icon = lucide[iconName];
             return (
               <div className={`flex flex-col items-center gap-1.5 flex-1 cursor-pointer transition-all ${active ? 'text-[#eab308]' : 'text-zinc-500'}`}>
                 <div className={`h-10 flex items-center justify-center ${active ? 'scale-110' : 'scale-100'}`}>
@@ -68,14 +90,13 @@
             );
           };
 
-          // Re-trigger Lucide icons on render
-          useEffect(() => { lucide.createIcons(); });
-
           return (
-            <div className="flex flex-col h-screen bg-black text-white font-sans overflow-hidden select-none relative">
+            <div className="flex flex-col h-full bg-black text-white font-sans overflow-hidden select-none relative">
+              
+              {/* Header */}
               <div className="px-4 py-4 flex items-center gap-3 bg-black">
                 <div className="w-12 h-12 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform">
-                  <img src={PROFILE_PIC} className="w-full h-full object-cover" />
+                  <img src={PROFILE_PIC} className="w-full h-full object-cover" alt="Profile" />
                 </div>
                 <div className="flex-1 bg-[#222222] rounded-full h-12 flex items-center px-5 gap-3 border border-white/5">
                   <i data-lucide="search" className="text-gray-400 w-5 h-5"></i>
@@ -86,16 +107,18 @@
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto pb-32">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
                 <div className="px-4 mt-2">
                   <div className="relative aspect-square w-full bg-[#161616] rounded-[48px] overflow-hidden border border-white/5 shadow-2xl">
-                    <img src={CAT_BANNER} className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={CAT_BANNER} className="absolute inset-0 w-full h-full object-cover" alt="Banner" />
                   </div>
                   <div className="flex justify-center items-center mt-6 gap-1 text-[#42a5f5] text-[14px] font-bold">
                     Get World Cup Themes <i data-lucide="chevron-right" className="w-4 h-4"></i>
                   </div>
                 </div>
 
+                {/* Main Grid Actions */}
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
@@ -104,7 +127,7 @@
                     </div>
                     <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[10px] text-gray-400 uppercase font-bold">Your QR</div>
                   </div>
-                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform">
+                  <button onClick={() => setIsPopupOpen(true)} className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center gap-3 active:scale-95 transition-transform shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                     <i data-lucide="eye" className="text-white opacity-80 w-5 h-5"></i>
                     <span className="text-[15px] font-bold">Check Balance</span>
                   </button>
@@ -117,6 +140,7 @@
                   </div>
                 </div>
 
+                {/* Secondary Actions */}
                 <div className="flex items-center justify-between px-6 mt-6">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-16 h-16 bg-black border border-white/10 rounded-full flex items-center justify-center relative overflow-hidden active:scale-95 transition-transform">
@@ -135,6 +159,7 @@
                   </div>
                 </div>
 
+                {/* Recommended Section */}
                 <div className="mt-12">
                   <div className="px-6 mb-6"><h2 className="text-gray-400 text-[15px] font-bold">Recommended</h2></div>
                   <div className="flex gap-5 px-6 overflow-x-auto no-scrollbar pb-4">
@@ -160,6 +185,7 @@
                 </div>
               </div>
 
+              {/* Fixed Bottom Navigation */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
@@ -168,31 +194,49 @@
                 <NavItem iconName="layout-grid" label="Keeper" />
               </div>
 
+              {/* Check Balance Popup */}
               {isPopupOpen && (
                 <div className="absolute inset-0 z-50 flex flex-col justify-end">
                   <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
-                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-8 pb-12 shadow-2xl">
+                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-8 pb-12 shadow-2xl animate-in slide-in-from-bottom duration-300">
                     <div className="flex items-center mb-10">
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-90"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black">Check Balance</h2>
                     </div>
+                    
                     <div className="flex items-center justify-between mb-12">
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-[#1a1a1a] rounded-2xl flex items-center justify-center shadow-xl overflow-hidden border border-white/5 p-3">
-                           <img src={LOGO_ICON} className="w-full h-full object-cover scale-110" />
+                        <div className="w-14 h-14 bg-[#1a1a1a] rounded-2xl flex items-center justify-center shadow-xl overflow-hidden border border-white/5">
+                           <img src={LOGO_ICON} className="w-full h-full object-cover scale-110" alt="Logo" />
                         </div>
                         <span className="text-xl font-bold text-gray-200">Wallet balance</span>
                       </div>
                       <div className="flex items-center gap-1 text-2xl font-black">
                         <span className="text-gray-400">₹</span>
                         {isEditingBalance ? (
-                          <input ref={inputRef} type="text" value={balance} onChange={(e) => setBalance(e.target.value)} onBlur={() => setIsEditingBalance(false)} className="bg-transparent border-b-2 border-blue-500 outline-none text-white w-32 text-right px-1" />
+                          <input 
+                            ref={inputRef} 
+                            type="text" 
+                            value={balance} 
+                            onChange={(e) => setBalance(e.target.value)} 
+                            onBlur={() => setIsEditingBalance(false)} 
+                            onKeyDown={(e) => e.key === 'Enter' && setIsEditingBalance(false)}
+                            className="bg-transparent border-b-2 border-blue-500 outline-none text-white w-32 text-right px-1" 
+                          />
                         ) : (
-                          <div onClick={() => setIsEditingBalance(true)} className="text-white cursor-pointer hover:bg-white/5 px-2 rounded-lg transition-colors min-w-[80px] text-right">{balance}</div>
+                          <div 
+                            onClick={() => setIsEditingBalance(true)} 
+                            className="text-white cursor-pointer hover:bg-white/5 px-2 rounded-lg transition-colors min-w-[80px] text-right"
+                          >
+                            {balance}
+                          </div>
                         )}
                       </div>
                     </div>
-                    <div className="w-full rounded-[32px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900"><img src={BANK_PROMO} className="w-full h-auto object-cover" /></div>
+                    
+                    <div className="w-full rounded-[32px] overflow-hidden border border-white/5 shadow-2xl bg-zinc-900">
+                      <img src={BANK_PROMO} className="w-full h-auto object-cover" alt="Promo" />
+                    </div>
                   </div>
                 </div>
               )}
