@@ -48,11 +48,8 @@
           const [balance, setBalance] = useState("786.37");
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const [deferredPrompt, setDeferredPrompt] = useState(null);
+          const [isInstalled, setIsInstalled] = useState(false);
           
-          // Debugging State
-          const [logs, setLogs] = useState([]);
-          const addLog = (msg) => setLogs(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${msg}`]);
-
           const inputRef = useRef(null);
 
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
@@ -61,30 +58,26 @@
           const PROFILE_PIC = "https://cdn.discordapp.com/avatars/831419437617643591/f6aa179896d7f2116b58fe6c54c2293a.webp?size=240";
 
           useEffect(() => {
-            // 1. Service Worker Registration with Logs
-            if ('serviceWorker' in navigator) {
-                if (location.protocol === 'https:') {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(() => addLog("SW Registered ✅"))
-                        .catch(err => addLog("SW Fail: " + err.message));
-                } else {
-                    addLog("Not HTTPS ❌");
-                }
-            } else {
-                addLog("No SW Support ❌");
+            // Detect Standalone Mode
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+              setIsInstalled(true);
             }
 
-            // 2. Install Prompt Listener
+            // Register Service Worker
+            if ('serviceWorker' in navigator && location.protocol === 'https:') {
+                navigator.serviceWorker.register('./sw.js').then(() => console.log("SW Active"));
+            }
+
+            // Catch Install Prompt
             const handleBeforeInstall = (e) => {
               e.preventDefault();
               setDeferredPrompt(e);
-              addLog("Install Ready 🚀");
             };
 
             window.addEventListener('beforeinstallprompt', handleBeforeInstall);
             window.addEventListener('appinstalled', () => {
-                addLog("App Installed! 🎉");
-                setDeferredPrompt(null);
+              setIsInstalled(true);
+              setDeferredPrompt(null);
             });
 
             return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
@@ -95,14 +88,10 @@
             lucide.createIcons();
           });
 
-          const triggerInstall = async () => {
-            if (!deferredPrompt) {
-                addLog("Wait for prompt event...");
-                return;
-            }
+          const handleInstall = async () => {
+            if (!deferredPrompt) return;
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
-            addLog("User: " + outcome);
             if (outcome === 'accepted') setDeferredPrompt(null);
           };
 
@@ -118,6 +107,19 @@
           return (
             <div className="flex flex-col h-full bg-black text-white overflow-hidden select-none relative">
               
+              {/* Install Trigger (Bypasses Browser Menu) */}
+              {deferredPrompt && !isInstalled && (
+                <div className="bg-blue-600 px-4 py-3 flex items-center justify-between sticky top-0 z-[100] animate-pulse">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-white p-1 rounded-lg">
+                      <img src={LOGO_ICON} className="w-5 h-5 object-contain" alt="Logo" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-tight">Real App Available</span>
+                  </div>
+                  <button onClick={handleInstall} className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg">Install Now</button>
+                </div>
+              )}
+
               {/* Header */}
               <div className="px-4 py-4 flex items-center gap-3 bg-black safe-top">
                 <div className="w-12 h-12 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer relative">
@@ -161,20 +163,38 @@
                     <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Add Money</div>
                   </div>
                 </div>
-              </div>
 
-              {/* Debugger Panel */}
-              <div className="bg-[#111] border-t border-blue-500/30 p-2 font-mono text-[9px] text-blue-400 z-[100] pb-24">
-                <div className="flex justify-between items-center mb-1 border-b border-white/10 pb-1">
-                    <span className="font-bold uppercase tracking-widest text-[8px]">PWA Debugger</span>
-                    <button onClick={triggerInstall} className={`px-2 py-0.5 rounded ${deferredPrompt ? 'bg-blue-600 text-white animate-pulse' : 'bg-zinc-800 text-zinc-500'}`}>
-                        {deferredPrompt ? 'FORCE INSTALL' : 'PROMPT WAITING...'}
-                    </button>
+                <div className="mt-12">
+                  <div className="px-6 mb-6"><h2 className="text-gray-400 text-[15px] font-bold">Recommended</h2></div>
+                  <div className="flex gap-5 px-6 overflow-x-auto no-scrollbar pb-10">
+                    {[
+                        { name: "Rajesh 3si...", color: "bg-red-500", icon: "🔥", badge: "GPay" },
+                        { name: "Irfan", color: "bg-blue-400", icon: "💧", badge: "PP" },
+                        { name: "Sukh Baha...", color: "bg-orange-400", icon: "👑", badge: "GPay" },
+                        { name: "Mr Pravee...", color: "bg-purple-500", icon: "⭐", badge: "PP" }
+                    ].map((person, i) => (
+                      <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 w-20">
+                        <div className="relative group">
+                          <div className="w-20 h-20 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
+                            <i data-lucide="user" className="text-white/5 w-10 h-10"></i>
+                            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full ${person.color} flex items-center justify-center border-4 border-[#000000]`}>
+                              <span className="text-sm">{person.icon}</span>
+                            </div>
+                          </div>
+                          <div className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-white flex items-center justify-center border-[3px] border-black shadow-lg">
+                            <div className={`w-5 h-5 rounded-full ${person.badge === 'GPay' ? 'bg-blue-500' : 'bg-indigo-600'} flex items-center justify-center`}>
+                               <span className="text-[8px] font-black text-white">{person.badge === 'GPay' ? 'G' : 'P'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[11px] text-gray-400 font-bold text-center w-full truncate">{person.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {logs.map((log, i) => <div key={i}>{log}</div>)}
               </div>
 
-              {/* Bottom Nav */}
+              {/* Nav */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40 safe-bottom">
                 <NavItem iconName="landmark" label="Bank" />
                 <NavItem iconName="history" label="Wallet" />
