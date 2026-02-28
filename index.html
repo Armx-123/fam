@@ -13,9 +13,9 @@
     <meta name="apple-mobile-web-app-title" content="FamPay">
     
     <!-- Link to the physical Manifest file -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     
-    <!-- Favicon & Icons -->
+    <!-- Favicon & Icons - Using 512px for better splash screen scaling -->
     <link rel="shortcut icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
     <link rel="apple-touch-icon" href="https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512">
 
@@ -62,14 +62,18 @@
     <script>
         /**
          * SERVICE WORKER REGISTRATION
-         * A physical sw.js file is required for Brave/Chrome to show "Install App"
+         * Modified to prevent errors in the restricted preview environment 
+         * while remaining active on your real GitHub site.
          */
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registered', reg))
-                    .catch(err => console.error('Service Worker registration failed', err));
-            });
+            // Only attempt registration on standard web protocols (not blob: or local preview sandbox)
+            if (location.protocol.startsWith('http') && !location.host.includes('usercontent.goog')) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('Service Worker registered'))
+                        .catch(err => console.error('Service Worker registration failed', err));
+                });
+            }
         }
     </script>
 
@@ -82,7 +86,7 @@
           const [isEditingBalance, setIsEditingBalance] = useState(false);
           const inputRef = useRef(null);
 
-          // Image Assets
+          // Image Assets from GitHub/Discord
           const LOGO_ICON = "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512";
           const CAT_BANNER = "https://raw.githubusercontent.com/Armx-123/fam/main/4674375e-ee4e-48df-9648-2d9e8d97188f.jpg";
           const BANK_PROMO = "https://raw.githubusercontent.com/Armx-123/fam/main/83a351ee-43b9-4864-8b7e-265d718cb0f8.jpg";
@@ -116,7 +120,7 @@
             <div className="flex flex-col h-screen bg-black text-white overflow-hidden select-none relative">
               
               {/* Header */}
-              <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top border-b border-white/5">
+              <div className="px-4 py-3 flex items-center gap-3 bg-black safe-top">
                 <div className="w-11 h-11 bg-[#222222] rounded-full overflow-hidden border border-white/5 shadow-lg active:scale-90 transition-transform cursor-pointer">
                   <img src={PROFILE_PIC} className="w-full h-full object-cover" alt="Profile" />
                 </div>
@@ -140,7 +144,7 @@
                   </div>
                 </div>
 
-                {/* Main Actions */}
+                {/* Primary Actions Grid */}
                 <div className="flex items-center justify-between px-6 mt-8">
                   <div className="flex flex-col items-center gap-2">
                     <div className="w-15 h-15 bg-black border border-white/10 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden active:scale-95 transition-transform">
@@ -169,7 +173,7 @@
                       <div className="w-full h-full bg-gradient-to-br from-transparent to-white/5"></div>
                       <div className="absolute bottom-0 w-full h-1/4 bg-white/5"></div>
                     </div>
-                    <div className="bg-[#1a1a1a] px-2.5 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">DigiGold</div>
+                    <div className="bg-[#1a1a1a] px-3 py-0.5 rounded text-[9px] text-gray-400 uppercase font-bold tracking-tight">DigiGold</div>
                   </div>
                   <div className="flex-1 mx-4 h-16 bg-[#0c0c0c] border border-white/10 rounded-full flex items-center justify-center active:scale-95 transition-transform">
                     <span className="text-[14px] font-bold text-gray-200">Vouchers</span>
@@ -222,7 +226,7 @@
               {isPopupOpen && (
                 <div className="fixed inset-0 z-50 flex flex-col justify-end">
                   <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }}></div>
-                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up safe-bottom">
+                  <div className="relative bg-[#0d0d0d] rounded-t-[44px] px-6 pt-7 pb-10 shadow-2xl animate-slide-up">
                     <div className="flex items-center mb-9">
                       <button onClick={() => { setIsPopupOpen(false); setIsEditingBalance(false); }} className="mr-4 active:scale-75 transition-transform"><i data-lucide="chevron-left" className="w-8 h-8"></i></button>
                       <h2 className="text-2xl font-black tracking-tight">Check Balance</h2>
