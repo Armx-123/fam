@@ -1,7 +1,8 @@
 {
-  "id": "fampay-pwa-v1",
+  "id": "fampay-app-standalone",
   "name": "FamPay",
   "short_name": "FamPay",
+  "description": "Secure Payments & Rewards",
   "start_url": "/fam/",
   "scope": "/fam/",
   "display": "standalone",
@@ -20,6 +21,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://fampay-dtu-cognizance.netlify.app/&size=512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
