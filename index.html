@@ -209,15 +209,6 @@
                 </div>
               </div>
 
-              {/* Debugger UI */}
-              <div className="fixed bottom-24 left-4 right-4 bg-zinc-900/90 border border-blue-500/30 rounded-xl p-3 font-mono text-[9px] text-blue-400 z-[100] backdrop-blur-md">
-                <div className="flex justify-between items-center mb-1 border-b border-white/10 pb-1">
-                    <span className="font-bold uppercase tracking-widest text-[8px]">PWA Hard-Status</span>
-                    <button onClick={() => setLogs([])} className="text-white/40">Clear</button>
-                </div>
-                {logs.map((log, i) => <div key={i} className="leading-tight mb-0.5">{log}</div>)}
-              </div>
-
               {/* Nav */}
               <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/5 px-2 pb-8 pt-2 flex justify-around items-center z-40 safe-bottom">
                 <NavItem iconName="landmark" label="Bank" />
