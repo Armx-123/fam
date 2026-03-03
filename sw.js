@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fampay-v11';
+const CACHE_NAME = 'fampay-v30';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
